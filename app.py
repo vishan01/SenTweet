@@ -14,6 +14,7 @@ port_stem = PorterStemmer()
 stop_words =set(stopwords.words("english"))
 vectorizer = TV()
 model = pickle.load(open("src/model.pkl","rb"))
+vectorizer = pickle.load(open('src/vectorizer.pkl','rb'))
 def stemming(content):
   stem_con = re.sub('[^a-zA-Z]',' ', content)
   stem_con = stem_con.lower()
@@ -37,7 +38,7 @@ if option=="Text Input":
     text = st.text_input("Enter Tweet", "")
     if(text):
         text=stemming(text)
-        X=vectorizer.fit_transform([text])
+        X=vectorizer.transform([text])
         result=model.predict(X)
         if result==0:
             st.write("The Tweet is Negative")
@@ -46,19 +47,27 @@ if option=="Text Input":
 
 if option=="CSV File Input":
     text = st.file_uploader("Choose a CSV file",)
-    df = pd.read_csv(text)
+    if(text):
+        df = pd.read_csv(text)
 
-    option = st.selectbox(
-   "Select The Text Columns",
-   (data.columns.values),
-   index=None,
-   placeholder="Select column.",
-)
-
-    val=stemming(df[option])
-    X=vectorizer.fit_transform(val)
-    result=model.predict(X)
-    df['result']=result.replace([1,0],["Postive","Negative"])
-    st.dataframe(df)
+        option = st.selectbox(
+    "Select The Text Columns",
+    (df.columns.values),
+    index=None,
+    placeholder="Select column.",
+    )
+        if(option):
+            val=df[option].astype(str).apply(stemming)
+            X=vectorizer.transform(val)
+            result=model.predict(X)
+            val=[]
+            for x in result:
+                if x==1:
+                    val.append("Positive")
+                else:
+                    val.append("Negative")
+            
+            df['result']=val
+            st.dataframe(df)
 
 
