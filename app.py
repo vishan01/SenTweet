@@ -1,6 +1,7 @@
 import pickle
 import streamlit as st
 import pandas as pd
+import re
 import nltk
 from nltk.corpus import stopwords
 from nltk.stem.porter import PorterStemmer
@@ -11,6 +12,7 @@ nltk.download("stopwords")
 port_stem = PorterStemmer()
 
 stop_words =set(stopwords.words("english"))
+vectorizer = TV()
 model = pickle.load(open("src/model.pkl","rb"))
 def stemming(content):
   stem_con = re.sub('[^a-zA-Z]',' ', content)
@@ -33,13 +35,14 @@ st.write("You selected:", option)
 
 if option=="Text Input":
     text = st.text_input("Enter Tweet", "")
-    text=stemming(text)
-    X=vectorizer.fit_transform(text)
-    result=model.predict(X)
-    if result==0:
-        st.write("The Tweet is Negative")
-    else:
-        st.write("The Tweet is Positive")
+    if(text):
+        text=stemming(text)
+        X=vectorizer.fit_transform([text])
+        result=model.predict(X)
+        if result==0:
+            st.write("The Tweet is Negative")
+        else:
+            st.write("The Tweet is Positive")
 
 if option=="CSV File Input":
     text = st.file_uploader("Choose a CSV file",)
